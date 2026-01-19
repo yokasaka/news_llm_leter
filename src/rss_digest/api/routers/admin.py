@@ -9,7 +9,7 @@ from fastapi import APIRouter, Depends
 from rss_digest.api.dependencies import get_repositories, require_admin
 from rss_digest.api.routers.helpers import group_feed_response, user_response
 from rss_digest.api.schemas import DeliveryResponse, GroupFeedResponse, UserResponse
-from rss_digest.models import User
+from rss_digest.db.models import User
 from rss_digest.repository import Repositories
 
 router = APIRouter(prefix="/admin", tags=["admin"])

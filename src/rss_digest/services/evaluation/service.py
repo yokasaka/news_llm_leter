@@ -6,7 +6,7 @@ from dataclasses import dataclass
 from datetime import datetime
 from typing import Iterable
 
-from rss_digest.models import GroupItem, ItemEvaluation, ItemSummary
+from rss_digest.db.models import GroupItem, ItemEvaluation, ItemSummary
 from rss_digest.repository import (
     GroupItemsRepo,
     ItemEvaluationsRepo,

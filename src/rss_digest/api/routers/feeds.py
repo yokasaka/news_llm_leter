@@ -22,7 +22,7 @@ from rss_digest.api.schemas import (
     GroupFeedResponse,
     GroupFeedUpdateRequest,
 )
-from rss_digest.models import GroupFeed, User
+from rss_digest.db.models import GroupFeed, User
 from rss_digest.repository import Repositories
 from rss_digest.services.rss.discovery import RssDiscoveryService
 
@@ -50,10 +50,10 @@ def add_feed(
     feed_source = repos.feed_sources.find_by_url(payload.feed_url)
     if feed_source is None:
         feed_source = _build_feed_source(payload.feed_url)
-        repos.feed_sources.add(feed_source)
+        feed_source = repos.feed_sources.add(feed_source)
     group_feed = GroupFeed(group_id=group.id, feed_source_id=feed_source.id)
-    repos.group_feeds.add(group_feed)
-    return group_feed_response(group_feed, feed_source.url)
+    persisted = repos.group_feeds.add(group_feed)
+    return group_feed_response(persisted, feed_source.url)
 
 
 @router.post(":discover_by_site_url", response_model=list[FeedCandidateResponse])
@@ -90,9 +90,9 @@ def update_feed(
         feed_source_id=group_feed.feed_source_id,
         enabled=payload.enabled,
     )
-    repos.group_feeds.add(updated)
-    feed_source = repos.feed_sources.get(updated.feed_source_id)
-    return group_feed_response(updated, feed_source.url if feed_source else "")
+    persisted = repos.group_feeds.add(updated)
+    feed_source = repos.feed_sources.get(persisted.feed_source_id)
+    return group_feed_response(persisted, feed_source.url if feed_source else "")
 
 
 @router.delete("/{group_feed_id}")
@@ -109,6 +109,6 @@ def delete_feed(
 
 
 def _build_feed_source(url: str):
-    from rss_digest.models import FeedSource
+    from rss_digest.db.models import FeedSource
 
     return FeedSource(url=url)

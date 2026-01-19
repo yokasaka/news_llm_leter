@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from rss_digest.models import Delivery, GroupDestination
+from rss_digest.db.models import Delivery, GroupDestination
 from rss_digest.repository import DeliveriesRepo
 
 

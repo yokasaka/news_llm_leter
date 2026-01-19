@@ -1,17 +1,14 @@
 from datetime import datetime, timezone
 
-from rss_digest.models import Group, GroupSchedule, User
-from rss_digest.repository import Repositories
+from rss_digest.db.models import Group, GroupSchedule, User
 from rss_digest.services.scheduler.service import SchedulerService
 
 
-def test_scheduler_ticks_due_schedule_and_prevents_double_fire():
-    repos = Repositories.build()
-    user = User(email="user@example.com", timezone="UTC")
-    group = Group(user_id=user.id, name="Daily")
+def test_scheduler_ticks_due_schedule_and_prevents_double_fire(repositories):
+    repos = repositories
+    user = repos.users.add(User(email="user@example.com", timezone="UTC"))
+    group = repos.groups.add(Group(user_id=user.id, name="Daily"))
     schedule = GroupSchedule(group_id=group.id, time_hhmm="08:30")
-    repos.users.add(user)
-    repos.groups.add(group)
     repos.schedules.add(schedule)
 
     service = SchedulerService(repos.schedules, repos.groups, repos.users)

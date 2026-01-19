@@ -18,7 +18,7 @@ from rss_digest.api.schemas import (
     DestinationResponse,
     DestinationUpdateRequest,
 )
-from rss_digest.models import GroupDestination, User
+from rss_digest.db.models import GroupDestination, User
 from rss_digest.repository import Repositories
 
 router = APIRouter(prefix="/groups/{group_id}/destinations", tags=["destinations"])
@@ -49,8 +49,8 @@ def create_destination(
         destination=payload.destination,
         token_enc=payload.token,
     )
-    repos.destinations.add(destination)
-    return destination_response(destination)
+    persisted = repos.destinations.add(destination)
+    return destination_response(persisted)
 
 
 @router.patch("/{destination_id}", response_model=DestinationResponse)
@@ -71,8 +71,8 @@ def update_destination(
         token_enc=destination.token_enc,
         enabled=payload.enabled if payload.enabled is not None else destination.enabled,
     )
-    repos.destinations.add(updated)
-    return destination_response(updated)
+    persisted = repos.destinations.add(updated)
+    return destination_response(persisted)
 
 
 @router.delete("/{destination_id}")

@@ -18,7 +18,7 @@ from rss_digest.api.schemas import (
     ScheduleResponse,
     ScheduleUpdateRequest,
 )
-from rss_digest.models import GroupSchedule, User
+from rss_digest.db.models import GroupSchedule, User
 from rss_digest.repository import Repositories
 from rss_digest.services.scheduler.service import parse_time_hhmm
 
@@ -46,8 +46,8 @@ def create_schedule(
     group = get_group_or_404(repos, group_id, current_user)
     parse_time_hhmm(payload.time_hhmm)
     schedule = GroupSchedule(group_id=group.id, time_hhmm=payload.time_hhmm)
-    repos.schedules.add(schedule)
-    return schedule_response(schedule)
+    persisted = repos.schedules.add(schedule)
+    return schedule_response(persisted)
 
 
 @router.patch("/{schedule_id}", response_model=ScheduleResponse)
@@ -69,8 +69,8 @@ def update_schedule(
         enabled=payload.enabled if payload.enabled is not None else schedule.enabled,
         last_fired_at=schedule.last_fired_at,
     )
-    repos.schedules.add(updated)
-    return schedule_response(updated)
+    persisted = repos.schedules.add(updated)
+    return schedule_response(persisted)
 
 
 @router.delete("/{schedule_id}")

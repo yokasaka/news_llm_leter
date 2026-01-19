@@ -2,21 +2,35 @@
 
 from __future__ import annotations
 
-from dataclasses import replace
 from datetime import datetime
-from typing import Dict, Optional
+from typing import Optional
 from uuid import UUID
 
-from rss_digest.models import FeedItem, FeedSource, GroupFeed
-from rss_digest.repository.base import InMemoryRepository, RepositoryError
+from sqlalchemy import exists, select
+from sqlalchemy.orm import Session
+
+from rss_digest.db.models import FeedItem, FeedSource, GroupFeed
+from rss_digest.repository.base import RepositoryError, ensure_id
 
 
-class FeedSourcesRepo(InMemoryRepository):
-    def add(self, record: FeedSource) -> None:  # type: ignore[override]
-        super().add(record)
+class FeedSourcesRepo:
+    def __init__(self, session: Session) -> None:
+        self._session = session
+
+    def add(self, record: FeedSource) -> FeedSource:
+        ensure_id(record)
+        merged = self._session.merge(record)
+        self._session.commit()
+        return merged
+
+    def get(self, record_id: UUID) -> FeedSource | None:
+        return self._session.get(FeedSource, record_id)
+
+    def list_all(self) -> list[FeedSource]:
+        return list(self._session.scalars(select(FeedSource)))
 
     def find_by_url(self, url: str) -> FeedSource | None:
-        return next((feed for feed in self.list_all() if feed.url == url), None)
+        return self._session.scalars(select(FeedSource).where(FeedSource.url == url)).first()
 
     def update_fetch_meta(
         self,
@@ -31,47 +45,71 @@ class FeedSourcesRepo(InMemoryRepository):
         feed = self.get(feed_source_id)
         if feed is None:
             raise RepositoryError("Feed source not found")
-        self._records[feed_source_id] = replace(
-            feed,
-            etag=etag,
-            last_modified=last_modified,
-            last_fetch_at=fetched_at,
-            consecutive_failures=failures,
-            health_status=status,
-        )
+        feed.etag = etag
+        feed.last_modified = last_modified
+        feed.last_fetch_at = fetched_at
+        feed.consecutive_failures = failures
+        feed.health_status = status
+        self._session.commit()
 
 
-class GroupFeedsRepo(InMemoryRepository):
-    def add(self, record: GroupFeed) -> None:  # type: ignore[override]
-        super().add(record)
+class GroupFeedsRepo:
+    def __init__(self, session: Session) -> None:
+        self._session = session
+
+    def add(self, record: GroupFeed) -> GroupFeed:
+        ensure_id(record)
+        merged = self._session.merge(record)
+        self._session.commit()
+        return merged
+
+    def get(self, record_id: UUID) -> GroupFeed | None:
+        return self._session.get(GroupFeed, record_id)
+
+    def delete(self, record_id: UUID) -> None:
+        group_feed = self.get(record_id)
+        if group_feed is None:
+            return
+        self._session.delete(group_feed)
+        self._session.commit()
+
+    def list_all(self) -> list[GroupFeed]:
+        return list(self._session.scalars(select(GroupFeed)))
 
     def list_enabled(self, group_id: UUID) -> list[GroupFeed]:
-        return [
-            group_feed
-            for group_feed in self.list_all()
-            if group_feed.group_id == group_id and group_feed.enabled
-        ]
+        stmt = select(GroupFeed).where(
+            GroupFeed.group_id == group_id, GroupFeed.enabled.is_(True)
+        )
+        return list(self._session.scalars(stmt))
 
     def list_by_group(self, group_id: UUID) -> list[GroupFeed]:
-        return [group_feed for group_feed in self.list_all() if group_feed.group_id == group_id]
+        stmt = select(GroupFeed).where(GroupFeed.group_id == group_id)
+        return list(self._session.scalars(stmt))
 
 
-class FeedItemsRepo(InMemoryRepository):
-    def __init__(self) -> None:
-        super().__init__()
-        self._index: Dict[tuple[UUID, str], UUID] = {}
+class FeedItemsRepo:
+    def __init__(self, session: Session) -> None:
+        self._session = session
 
-    def add(self, record: FeedItem) -> None:  # type: ignore[override]
-        key = (record.feed_source_id, record.guid_hash)
-        if key in self._index:
-            return
-        super().add(record)
-        self._index[key] = record.id
+    def add(self, record: FeedItem) -> FeedItem:
+        ensure_id(record)
+        merged = self._session.merge(record)
+        self._session.commit()
+        return merged
+
+    def get(self, record_id: UUID) -> FeedItem | None:
+        return self._session.get(FeedItem, record_id)
+
+    def list_all(self) -> list[FeedItem]:
+        return list(self._session.scalars(select(FeedItem)))
 
     def list_by_feed(self, feed_source_id: UUID) -> list[FeedItem]:
-        return [
-            item for item in self.list_all() if item.feed_source_id == feed_source_id
-        ]
+        stmt = select(FeedItem).where(FeedItem.feed_source_id == feed_source_id)
+        return list(self._session.scalars(stmt))
 
     def exists_guid(self, feed_source_id: UUID, guid_hash: str) -> bool:
-        return (feed_source_id, guid_hash) in self._index
+        stmt = select(exists().where(
+            FeedItem.feed_source_id == feed_source_id,
+            FeedItem.guid_hash == guid_hash,
+        ))
+        return bool(self._session.execute(stmt).scalar())

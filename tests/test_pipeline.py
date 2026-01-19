@@ -1,8 +1,7 @@
 from datetime import datetime, timezone
 from pathlib import Path
 
-from rss_digest.models import FeedSource, Group, GroupDestination, GroupFeed, User
-from rss_digest.repository import Repositories
+from rss_digest.db.models import FeedSource, Group, GroupDestination, GroupFeed, User
 from rss_digest.services.digest.delivery import DeliveryService
 from rss_digest.services.digest.builder import DigestBuilder
 from rss_digest.services.evaluation.service import EvaluationService
@@ -14,16 +13,13 @@ from rss_digest.services.digest.storage import StorageService
 from rss_digest.services.evaluation.summarizer import SimpleSummarizer
 
 
-def test_group_pipeline_runs_and_persists_digest(tmp_path):
-    repos = Repositories.build()
-    user = User(email="user@example.com", timezone="UTC")
-    group = Group(user_id=user.id, name="Tech")
-    feed_source = FeedSource(url="https://example.com/rss")
+def test_group_pipeline_runs_and_persists_digest(tmp_path, repositories):
+    repos = repositories
+    user = repos.users.add(User(email="user@example.com", timezone="UTC"))
+    group = repos.groups.add(Group(user_id=user.id, name="Tech"))
+    feed_source = repos.feed_sources.add(FeedSource(url="https://example.com/rss"))
     group_feed = GroupFeed(group_id=group.id, feed_source_id=feed_source.id)
     destination = GroupDestination(group_id=group.id, destination="user@example.com")
-    repos.users.add(user)
-    repos.groups.add(group)
-    repos.feed_sources.add(feed_source)
     repos.group_feeds.add(group_feed)
     repos.destinations.add(destination)
 
