@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from datetime import datetime, timezone
 from typing import Dict
-from uuid import UUID
+from uuid import UUID, uuid4
 
 
 def utc_now() -> datetime:
@@ -13,6 +13,11 @@ def utc_now() -> datetime:
 
 class RepositoryError(RuntimeError):
     """Base error for repository operations."""
+
+
+def ensure_id(record: object) -> None:
+    if getattr(record, "id", None) is None:
+        setattr(record, "id", uuid4())
 
 
 class InMemoryRepository:

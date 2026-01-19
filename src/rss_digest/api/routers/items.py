@@ -10,7 +10,7 @@ from fastapi import APIRouter, Depends
 from rss_digest.api.dependencies import get_current_user, get_repositories
 from rss_digest.api.routers.helpers import get_group_or_404
 from rss_digest.api.schemas import ItemResponse
-from rss_digest.models import User
+from rss_digest.db.models import User
 from rss_digest.repository import Repositories
 
 router = APIRouter(prefix="/groups/{group_id}/items", tags=["items"])

@@ -5,7 +5,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from datetime import datetime
 
-from rss_digest.models import Group, Item, ItemSummary
+from rss_digest.db.models import Group, Item, ItemSummary
 
 
 @dataclass

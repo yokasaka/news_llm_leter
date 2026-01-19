@@ -8,7 +8,7 @@ import hashlib
 from typing import Callable, Iterable, Optional
 
 from rss_digest.dedup import canonical_url_hash
-from rss_digest.models import FeedItem, FeedSource
+from rss_digest.db.models import FeedItem, FeedSource
 from rss_digest.repository import FeedItemsRepo, FeedSourcesRepo
 
 
@@ -75,7 +75,7 @@ class RssFetcher:
                 published_at=entry.published_at,
                 canonical_url_hash=canonical_url_hash(entry.url),
             )
-            self._feed_items.add(feed_item)
+            feed_item = self._feed_items.add(feed_item)
             new_items.append(feed_item)
 
         self._mark_success(feed_source, result)

@@ -7,7 +7,7 @@ from datetime import datetime, timezone
 from typing import Iterable
 
 from rss_digest.dedup import canonical_url_hash, normalize_url
-from rss_digest.models import FeedItem, GroupItem, Item
+from rss_digest.db.models import FeedItem, GroupItem, Item
 from rss_digest.repository import GroupItemsRepo, ItemsRepo
 
 
@@ -37,7 +37,7 @@ class MaterializeService:
                     canonical_url_hash=url_hash,
                     first_seen_at=datetime.now(timezone.utc),
                 )
-                self._items.add(item)
+                item = self._items.add(item)
                 new_items.append(item)
 
             group_item = GroupItem(

@@ -9,7 +9,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from rss_digest.api.dependencies import get_current_user, get_repositories
 from rss_digest.api.routers.helpers import user_response
 from rss_digest.api.schemas import LoginRequest, TokenResponse, UserResponse
-from rss_digest.models import User
+from rss_digest.db.models import User
 from rss_digest.repository import Repositories
 
 router = APIRouter(tags=["auth"])

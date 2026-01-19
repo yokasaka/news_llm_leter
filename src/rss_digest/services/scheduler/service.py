@@ -6,7 +6,7 @@ from dataclasses import dataclass
 from datetime import datetime, timezone
 from zoneinfo import ZoneInfo
 
-from rss_digest.models import Group, GroupSchedule, User
+from rss_digest.db.models import Group, GroupSchedule, User
 from rss_digest.repository import GroupSchedulesRepo, GroupsRepo, UsersRepo
 
 

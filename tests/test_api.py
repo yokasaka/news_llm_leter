@@ -1,14 +1,12 @@
 from fastapi.testclient import TestClient
 
 from rss_digest.api.main import create_app
-from rss_digest.models import User
-from rss_digest.repository import Repositories
+from rss_digest.db.models import User
 
 
-def test_group_crud_flow():
-    repos = Repositories.build()
-    user = User(email="user@example.com", timezone="UTC")
-    repos.users.add(user)
+def test_group_crud_flow(repositories):
+    repos = repositories
+    user = repos.users.add(User(email="user@example.com", timezone="UTC"))
     app = create_app(repositories=repos)
     client = TestClient(app)
 

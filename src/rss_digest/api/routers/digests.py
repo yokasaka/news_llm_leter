@@ -12,7 +12,7 @@ from fastapi.responses import FileResponse
 from rss_digest.api.dependencies import get_current_user, get_repositories
 from rss_digest.api.routers.helpers import digest_response, get_group_or_404
 from rss_digest.api.schemas import DigestResponse
-from rss_digest.models import User
+from rss_digest.db.models import User
 from rss_digest.repository import Repositories
 
 router = APIRouter(tags=["digests"])

@@ -7,7 +7,7 @@ from datetime import datetime, timedelta, timezone
 from typing import Iterable
 from uuid import UUID
 
-from rss_digest.models import Digest, FeedSource, Group
+from rss_digest.db.models import Digest, FeedSource, Group
 from rss_digest.repository import (
     DigestsRepo,
     FeedSourcesRepo,
@@ -73,13 +73,14 @@ class GroupPipeline:
             scheduled_at,
             evaluation_result,
         )
-        self._digests.add(digest)
+        digest = self._digests.add(digest)
         storage_result = self._storage.save_digest(
             group_id=group_id,
             scheduled_at=scheduled_at,
             markdown=digest.markdown_body,
         )
         digest.storage_path = storage_result.path
+        digest = self._digests.add(digest)
         destinations = self._destinations.list_enabled(group_id)
         self._delivery.deliver(digest.id, destinations)
         self._groups.update_run_times(group_id, started_at, datetime.now(timezone.utc))

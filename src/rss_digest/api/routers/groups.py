@@ -10,7 +10,7 @@ from fastapi import APIRouter, Depends
 from rss_digest.api.dependencies import get_current_user, get_repositories
 from rss_digest.api.routers.helpers import get_group_or_404, group_response
 from rss_digest.api.schemas import GroupCreateRequest, GroupResponse, GroupUpdateRequest
-from rss_digest.models import Group, User
+from rss_digest.db.models import Group, User
 from rss_digest.repository import Repositories
 
 router = APIRouter(prefix="/groups", tags=["groups"])
@@ -35,9 +35,10 @@ def create_group(
         user_id=current_user.id,
         name=payload.name,
         description=payload.description or "",
+        is_enabled=True,
     )
-    repos.groups.add(group)
-    return group_response(group)
+    persisted = repos.groups.add(group)
+    return group_response(persisted)
 
 
 @router.get("/{group_id}", response_model=GroupResponse)

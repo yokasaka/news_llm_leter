@@ -6,7 +6,10 @@ from collections.abc import Iterable, Sequence
 from dataclasses import dataclass
 from uuid import UUID
 
-from rss_digest.repository.base import InMemoryRepository, RepositoryError, utc_now
+from sqlalchemy.orm import Session
+
+from rss_digest.db.session import build_session_factory
+from rss_digest.repository.base import RepositoryError, utc_now
 from rss_digest.repository.destinations import GroupDestinationsRepo
 from rss_digest.repository.digests import DeliveriesRepo, DigestsRepo
 from rss_digest.repository.feeds import FeedItemsRepo, FeedSourcesRepo, GroupFeedsRepo
@@ -36,23 +39,27 @@ class Repositories:
     summaries: ItemSummariesRepo
     digests: DigestsRepo
     deliveries: DeliveriesRepo
+    session: Session
 
     @classmethod
-    def build(cls) -> "Repositories":
+    def build(cls, session: Session | None = None) -> "Repositories":
+        if session is None:
+            session = build_session_factory()()
         return cls(
-            users=UsersRepo(),
-            groups=GroupsRepo(),
-            schedules=GroupSchedulesRepo(),
-            destinations=GroupDestinationsRepo(),
-            feed_sources=FeedSourcesRepo(),
-            group_feeds=GroupFeedsRepo(),
-            feed_items=FeedItemsRepo(),
-            items=ItemsRepo(),
-            group_items=GroupItemsRepo(),
-            evaluations=ItemEvaluationsRepo(),
-            summaries=ItemSummariesRepo(),
-            digests=DigestsRepo(),
-            deliveries=DeliveriesRepo(),
+            users=UsersRepo(session),
+            groups=GroupsRepo(session),
+            schedules=GroupSchedulesRepo(session),
+            destinations=GroupDestinationsRepo(session),
+            feed_sources=FeedSourcesRepo(session),
+            group_feeds=GroupFeedsRepo(session),
+            feed_items=FeedItemsRepo(session),
+            items=ItemsRepo(session),
+            group_items=GroupItemsRepo(session),
+            evaluations=ItemEvaluationsRepo(session),
+            summaries=ItemSummariesRepo(session),
+            digests=DigestsRepo(session),
+            deliveries=DeliveriesRepo(session),
+            session=session,
         )
 
 
@@ -76,7 +83,6 @@ __all__ = [
     "GroupFeedsRepo",
     "GroupItemsRepo",
     "GroupSchedulesRepo",
-    "InMemoryRepository",
     "ItemEvaluationsRepo",
     "ItemSummariesRepo",
     "ItemsRepo",

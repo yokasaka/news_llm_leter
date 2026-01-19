@@ -14,7 +14,7 @@ from rss_digest.api.schemas import (
     ScheduleResponse,
     UserResponse,
 )
-from rss_digest.models import Group, GroupDestination, GroupFeed, GroupSchedule, User
+from rss_digest.db.models import Group, GroupDestination, GroupFeed, GroupSchedule, User
 from rss_digest.repository import Repositories
 
 
