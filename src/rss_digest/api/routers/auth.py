@@ -28,3 +28,9 @@ def login(
 @router.get("/me", response_model=UserResponse)
 def me(current_user: Annotated[User, Depends(get_current_user)]) -> UserResponse:
     return user_response(current_user)
+
+
+@router.post("/auth/logout")
+def logout(current_user: Annotated[User, Depends(get_current_user)]) -> dict:
+    _ = current_user
+    return {"status": "logged_out"}

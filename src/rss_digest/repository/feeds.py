@@ -27,6 +27,9 @@ class FeedSourcesRepo(InMemoryRepository):
         fetched_at: datetime,
         failures: int,
         status: str,
+        fetch_count: int,
+        not_modified_count: int,
+        failure_count: int,
     ) -> None:
         feed = self.get(feed_source_id)
         if feed is None:
@@ -38,6 +41,9 @@ class FeedSourcesRepo(InMemoryRepository):
             last_fetch_at=fetched_at,
             consecutive_failures=failures,
             health_status=status,
+            fetch_count=fetch_count,
+            not_modified_count=not_modified_count,
+            failure_count=failure_count,
         )
 
 

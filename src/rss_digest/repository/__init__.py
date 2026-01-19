@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import Iterable, Sequence
+from pathlib import Path
 from dataclasses import dataclass
 from uuid import UUID
 
@@ -16,6 +17,24 @@ from rss_digest.repository.items import (
     ItemEvaluationsRepo,
     ItemSummariesRepo,
     ItemsRepo,
+)
+from rss_digest.repository.job_runs import JobRunsRepo
+from rss_digest.repository.sqlite import (
+    SqliteDatabase,
+    SqliteDeliveriesRepo,
+    SqliteDigestsRepo,
+    SqliteFeedItemsRepo,
+    SqliteFeedSourcesRepo,
+    SqliteGroupDestinationsRepo,
+    SqliteGroupFeedsRepo,
+    SqliteGroupItemsRepo,
+    SqliteGroupSchedulesRepo,
+    SqliteGroupsRepo,
+    SqliteItemEvaluationsRepo,
+    SqliteItemSummariesRepo,
+    SqliteItemsRepo,
+    SqliteJobRunsRepo,
+    SqliteUsersRepo,
 )
 from rss_digest.repository.schedules import GroupSchedulesRepo
 from rss_digest.repository.users import UsersRepo
@@ -36,6 +55,7 @@ class Repositories:
     summaries: ItemSummariesRepo
     digests: DigestsRepo
     deliveries: DeliveriesRepo
+    job_runs: JobRunsRepo
 
     @classmethod
     def build(cls) -> "Repositories":
@@ -53,6 +73,27 @@ class Repositories:
             summaries=ItemSummariesRepo(),
             digests=DigestsRepo(),
             deliveries=DeliveriesRepo(),
+            job_runs=JobRunsRepo(),
+        )
+
+    @classmethod
+    def build_sqlite(cls, path: Path) -> "Repositories":
+        db = SqliteDatabase(path)
+        return cls(
+            users=SqliteUsersRepo(db),
+            groups=SqliteGroupsRepo(db),
+            schedules=SqliteGroupSchedulesRepo(db),
+            destinations=SqliteGroupDestinationsRepo(db),
+            feed_sources=SqliteFeedSourcesRepo(db),
+            group_feeds=SqliteGroupFeedsRepo(db),
+            feed_items=SqliteFeedItemsRepo(db),
+            items=SqliteItemsRepo(db),
+            group_items=SqliteGroupItemsRepo(db),
+            evaluations=SqliteItemEvaluationsRepo(db),
+            summaries=SqliteItemSummariesRepo(db),
+            digests=SqliteDigestsRepo(db),
+            deliveries=SqliteDeliveriesRepo(db),
+            job_runs=SqliteJobRunsRepo(db),
         )
 
 
@@ -84,6 +125,22 @@ __all__ = [
     "RepositoryError",
     "UsersRepo",
     "GroupsRepo",
+    "JobRunsRepo",
+    "SqliteDatabase",
+    "SqliteDeliveriesRepo",
+    "SqliteDigestsRepo",
+    "SqliteFeedItemsRepo",
+    "SqliteFeedSourcesRepo",
+    "SqliteGroupDestinationsRepo",
+    "SqliteGroupFeedsRepo",
+    "SqliteGroupItemsRepo",
+    "SqliteGroupSchedulesRepo",
+    "SqliteGroupsRepo",
+    "SqliteItemEvaluationsRepo",
+    "SqliteItemSummariesRepo",
+    "SqliteItemsRepo",
+    "SqliteJobRunsRepo",
+    "SqliteUsersRepo",
     "ensure_unique",
     "utc_now",
 ]

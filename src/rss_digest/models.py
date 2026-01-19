@@ -59,6 +59,9 @@ class FeedSource:
     last_fetch_at: datetime | None = None
     health_status: str = "healthy"
     consecutive_failures: int = 0
+    fetch_count: int = 0
+    not_modified_count: int = 0
+    failure_count: int = 0
 
 
 @dataclass
@@ -128,4 +131,15 @@ class Delivery:
     digest_id: UUID | None = None
     destination_id: UUID | None = None
     status: str = "pending"
+    error_message: str | None = None
+
+
+@dataclass
+class JobRun:
+    id: UUID = field(default_factory=new_id)
+    group_id: UUID | None = None
+    job_type: str = ""
+    status: str = "pending"
+    started_at: datetime = field(default_factory=datetime.utcnow)
+    finished_at: datetime | None = None
     error_message: str | None = None

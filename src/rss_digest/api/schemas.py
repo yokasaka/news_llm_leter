@@ -126,3 +126,39 @@ class DeliveryResponse(BaseModel):
     destination_id: UUID
     status: str
     error_message: str | None = None
+
+
+class AdminFeedHealthResponse(BaseModel):
+    id: UUID
+    url: str
+    health_status: str
+    consecutive_failures: int
+    last_fetch_at: datetime | None = None
+
+
+class JobRunResponse(BaseModel):
+    id: UUID
+    group_id: UUID | None = None
+    job_type: str
+    status: str
+    started_at: datetime
+    finished_at: datetime | None = None
+    error_message: str | None = None
+
+
+class AdminUsageResponse(BaseModel):
+    total_users: int
+    total_groups: int
+    total_feed_sources: int
+    total_group_feeds: int
+    total_digests: int
+    total_deliveries: int
+
+
+class AdminMetricsResponse(BaseModel):
+    active_users: int
+    feed_not_modified_rate: float
+    feed_failure_rate: float
+    llm_evaluations: int
+    llm_summaries: int
+    delivery_failure_rate: float

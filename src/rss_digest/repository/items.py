@@ -6,6 +6,7 @@ from datetime import datetime
 from typing import Dict
 from uuid import UUID
 
+from rss_digest.dedup import canonical_url_hash
 from rss_digest.models import GroupItem, Item, ItemEvaluation, ItemSummary
 from rss_digest.repository.base import InMemoryRepository
 
@@ -16,10 +17,12 @@ class ItemsRepo(InMemoryRepository):
         self._index: Dict[str, UUID] = {}
 
     def add(self, record: Item) -> None:  # type: ignore[override]
-        if record.canonical_url_hash in self._index:
+        url_hash = record.canonical_url_hash or canonical_url_hash(record.canonical_url)
+        if url_hash in self._index:
             return
+        record.canonical_url_hash = url_hash
         super().add(record)
-        self._index[record.canonical_url_hash] = record.id
+        self._index[url_hash] = record.id
 
     def find_by_hash(self, canonical_url_hash: str) -> Item | None:
         item_id = self._index.get(canonical_url_hash)

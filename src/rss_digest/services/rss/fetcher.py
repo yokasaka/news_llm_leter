@@ -57,7 +57,7 @@ class RssFetcher:
             raise FetchError(str(exc)) from exc
 
         if result.status_code == 304:
-            self._mark_success(feed_source, result)
+            self._mark_not_modified(feed_source, result)
             return []
         if result.status_code >= 400:
             self._mark_failure(feed_source)
@@ -95,6 +95,22 @@ class RssFetcher:
             fetched_at=datetime.now(timezone.utc),
             failures=0,
             status="healthy",
+            fetch_count=feed_source.fetch_count + 1,
+            not_modified_count=feed_source.not_modified_count,
+            failure_count=feed_source.failure_count,
+        )
+
+    def _mark_not_modified(self, feed_source: FeedSource, result: FeedFetchResult) -> None:
+        self._feed_sources.update_fetch_meta(
+            feed_source.id,
+            etag=result.etag or feed_source.etag,
+            last_modified=result.last_modified or feed_source.last_modified,
+            fetched_at=datetime.now(timezone.utc),
+            failures=0,
+            status="healthy",
+            fetch_count=feed_source.fetch_count + 1,
+            not_modified_count=feed_source.not_modified_count + 1,
+            failure_count=feed_source.failure_count,
         )
 
     def _mark_failure(self, feed_source: FeedSource) -> None:
@@ -107,6 +123,9 @@ class RssFetcher:
             fetched_at=datetime.now(timezone.utc),
             failures=failures,
             status=status,
+            fetch_count=feed_source.fetch_count + 1,
+            not_modified_count=feed_source.not_modified_count,
+            failure_count=feed_source.failure_count + 1,
         )
 
     @staticmethod

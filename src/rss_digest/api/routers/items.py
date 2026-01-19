@@ -2,10 +2,11 @@
 
 from __future__ import annotations
 
+from datetime import datetime
 from typing import Annotated
 from uuid import UUID
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Query
 
 from rss_digest.api.dependencies import get_current_user, get_repositories
 from rss_digest.api.routers.helpers import get_group_or_404
@@ -22,9 +23,17 @@ def list_items(
     current_user: Annotated[User, Depends(get_current_user)],
     repos: Annotated[Repositories, Depends(get_repositories)],
     decision: str = "all",
+    from_: datetime | None = Query(default=None, alias="from"),
+    to: datetime | None = None,
 ) -> list[ItemResponse]:
     group = get_group_or_404(repos, group_id, current_user)
     group_items = repos.group_items.list_by_group(group.id)
+    if from_ or to:
+        group_items = [
+            group_item
+            for group_item in group_items
+            if _within_range(group_item.first_seen_at, from_, to)
+        ]
     evaluations = {eval_.item_id: eval_ for eval_ in repos.evaluations.list_by_group(group.id)}
     summaries = {summary.item_id: summary for summary in repos.summaries.list_by_group(group.id)}
     items: list[ItemResponse] = []
@@ -47,3 +56,11 @@ def list_items(
             )
         )
     return items
+
+
+def _within_range(value: datetime, start: datetime | None, end: datetime | None) -> bool:
+    if start and value < start:
+        return False
+    if end and value > end:
+        return False
+    return True

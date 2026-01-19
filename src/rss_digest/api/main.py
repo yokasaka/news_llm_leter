@@ -2,6 +2,9 @@
 
 from __future__ import annotations
 
+import os
+from pathlib import Path
+
 from fastapi import FastAPI
 
 from rss_digest.api.routers import admin, auth, destinations, digests, feeds, groups, items, schedules
@@ -26,7 +29,11 @@ def create_app(repositories: Repositories | None = None) -> FastAPI:
 
 
 def _build_default_repositories() -> Repositories:
-    repos = Repositories.build()
+    db_path = os.getenv("RSS_DIGEST_DB_PATH")
+    if db_path:
+        repos = Repositories.build_sqlite(Path(db_path))
+    else:
+        repos = Repositories.build()
     admin_user = User(
         email="admin@example.com",
         name="Admin",

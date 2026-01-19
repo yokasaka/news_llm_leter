@@ -81,7 +81,7 @@ class GroupPipeline:
         )
         digest.storage_path = storage_result.path
         destinations = self._destinations.list_enabled(group_id)
-        self._delivery.deliver(digest.id, destinations)
+        self._delivery.deliver(digest.id, destinations, markdown=digest.markdown_body)
         self._groups.update_run_times(group_id, started_at, datetime.now(timezone.utc))
         return PipelineResult(digest=digest)
 
